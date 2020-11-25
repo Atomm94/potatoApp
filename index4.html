@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Uxarkox4</title>
+    <!--    <link href="style.css" rel="stylesheet">-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+    <script>
+        const socket = io.connect(
+            `http://localhost:5000/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjoiNWY4ZDc2ZDRjODc4NjgwYjQwODNjMDQ3IiwidXNlck5hbWUiOiJqaW1teTExIn0sImlhdCI6MTYwMzEwNjYyMn0.P_LYuFMKbGSUe4qyRPs5SxfzNEKGTrpiHS87i5N6Bhg`
+        );
+        socket.on("connect", () => {
+            console.log("connected to the server");
+            socket.on("eee",(msg)=>{
+                console.log(msg)
+            })
+            socket.on("newMessage", (message) => {
+                const m = document.createElement("p");
+                m.style = "color: blue";
+                m.innerHTML += message;
+                document.body.append(m);
+                console.log(message);
+            });
+
+            send.onclick = function () {
+                socket.emit("message", "5fb4cf89a406a300748a7d51", inp.value);
+
+                const m = document.createElement("p");
+                m.style = "color: grey";
+                m.innerHTML += inp.value;
+                document.body.append(m);
+                inp.value = ''
+                console.log(inp.value);
+            };
+        });
+    </script>
+</head>
+<body>
+<div id="log"></div><br>
+<div style="margin-bottom: 15px;">
+    <input type="text" id="inp" autofocus>
+    <input type="submit" id="send" value="Send">
+</div>
+</body>
+</html>

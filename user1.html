@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>User 1</title>
+    <!--    <link href="style.css" rel="stylesheet">-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+    <script>
+        const socket = io.connect(
+            `http://localhost:5000?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjoiNWY4MDQwMzIyOTFlODQxNTM4ODQyNDVkIiwidXNlck5hbWUiOiJzaWFyYTc3In0sImlhdCI6MTYwMjI1MDk2M30.tP43J0UklRMm_070oUGL59gWpvOyFTqWBdq23wEc-h4`
+        );
+        socket.on("connect", () => {
+            console.log("connected to the server");
+            socket.on('newNotification', (serverMessage) => {
+                const p = document.createElement("p");
+                p.style = "color: blue";
+                p.innerHTML += serverMessage;
+                document.body.append(p);
+            })
+            Add.onclick = function () {
+                socket.emit('add', '5f804089291e841538842461', {msg: 'I want to add you in my friends!'});
+            }
+            Accept.onclick = function () {
+                socket.emit('accept', '5f804089291e841538842461', {msg: 'I accept your offer!'});
+            }
+            Ignore.onclick = function () {
+                socket.emit('ignore', '5f804089291e841538842461', {msg: 'I ignore your offer!'});
+            }
+        });
+    </script>
+</head>
+<body>
+<div id="log"></div><br>
+<div style="margin-bottom: 15px;">
+    <input type="submit" id="Add" value="Add Friend">
+    <input type="submit" id="Accept" value="Accept Friend">
+    <input type="submit" id="Ignore" value="Ignore Friend">
+</div>
+</body>
+</html>
