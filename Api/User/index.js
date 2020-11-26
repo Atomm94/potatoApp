@@ -49,6 +49,7 @@ const registerPhone = async (req,res) => {
             phoneNumber: phone,
             userName: uuid()
         });
+        res.message = `You are registered your phone: ${phone}`
         return successHandler(res, userCreate);
     } catch (err) {
         return errorHandler(res, err);
@@ -67,6 +68,7 @@ const registerName = async (req,res) => {
             err.message = "User is not find!"
             return errorHandler(res, err);
         }
+        res.message = `You are registered your name: ${name}`
         return successHandler(res, userUpdate);
     } catch (err) {
         return errorHandler(res, err);
@@ -76,7 +78,6 @@ const registerName = async (req,res) => {
 const registerUserName = async (req,res) => {
     try {
         const userName = req.body.userName;
-        console.log(userName)
         const userId = req.query.userId
         if(req.file) {
             req.body.avatar = req.file.filename;
@@ -91,6 +92,7 @@ const registerUserName = async (req,res) => {
             err.message = "User is not find!"
             return errorHandler(res, err);
         }
+        res.message = `You are registered your avatar & userName: ${userName}`
         return successHandler(res, userUpdate)
     } catch (err) {
         if (req.file) {
@@ -116,6 +118,7 @@ const registerBirthDay = async (req,res) => {
             err.message = "User is not find!"
             return errorHandler(res, err);
         }
+        res.message = `You are registered your birthday: ${birthDay}`
         return successHandler(res, userUpdate)
     } catch (err) {
         return errorHandler(res, err)
@@ -146,6 +149,7 @@ const registerPassword = async (req,res) => {
         const verifyCode = await verifyModel.create({user: findUser._id, code: code})
         findUser.verificationCode = verifyCode._id;
         await findUser.save();
+        res.message = `You are registered your password: ${password}, verify your sms code`
         return successHandler(res, userUpdate)
     } catch (err) {
         return errorHandler(res, err);
