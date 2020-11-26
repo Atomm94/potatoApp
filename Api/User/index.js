@@ -8,6 +8,7 @@ const jwtAuth = require('../../jwtValidation').jwtToken;
 const smsCode = require('../../sendSMS').sendSmsCode;
 const smsLink = require('../../sendSMS').sendLink;
 const fs = require('fs');
+const uuid = require('uuid-random');
 
 // const register = async (req,res) => {
 //     try {
@@ -45,7 +46,8 @@ const registerPhone = async (req,res) => {
         const phone = req.body.phoneNumber;
         console.log(phone)
         const userCreate = await userModel.create({
-            phoneNumber: phone
+            phoneNumber: phone,
+            userName: uuid()
         });
         return successHandler(res, userCreate);
     } catch (err) {

@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const uuid = require('uuid-random');
 
+let newCode = uuid();
+
 const pointSchema = new Schema({
     type: {
         type: String,
@@ -29,12 +31,12 @@ const userSchema = new Schema({
     userName: {
         type: String,
         unique: true,
-        default: uuid()
+        default: null
     },
     phoneNumber: {
         type: String,
         unique: true,
-        default: uuid()
+        default: null
     },
     birthDay: {
         type: String,
