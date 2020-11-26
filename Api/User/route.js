@@ -7,9 +7,9 @@ const validation = require('./validation');
 const controllers = require('./index');
 
 //user.post('/register', upload, validation.registerValidation, controllers.register)
-user.post('/registerPhone',  controllers.registerPhone)
+user.post('/registerPhone',  validation.phoneNumberValidation, controllers.registerPhone)
 user.post('/registerName', validation.nameValidation, controllers.registerName)
-user.post('/registerUserName', validation.userNameValidation, upload, controllers.registerUserName)
+user.post('/registerUserName', upload, validation.userNameValidation, controllers.registerUserName)
 user.post('/registerBirthDay', validation.birthDayValidation, controllers.registerBirthDay)
 user.post('/registerPassword', validation.passwordValidation, controllers.registerPassword)
 user.post('/login', validation.loginValidation, controllers.login)

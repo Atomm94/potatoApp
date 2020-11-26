@@ -1,8 +1,5 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-const uuid = require('uuid-random');
-
-let newCode = uuid();
 
 const pointSchema = new Schema({
     type: {
