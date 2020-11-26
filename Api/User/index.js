@@ -9,42 +9,43 @@ const smsCode = require('../../sendSMS').sendSmsCode;
 const smsLink = require('../../sendSMS').sendLink;
 const fs = require('fs');
 
-const register = async (req,res) => {
-    try {
-        const body = req.body;
-        if(req.file) {
-            body.avatar = req.file.filename;
-        };
-        if (body.confirmPassword !== body.password) {
-            let err = {};
-            err.message = 'Password and Confirm password are different'
-            return errorHandler(res, err);
-        }
-        body.password = await helpFunctions.hashPassword(body.password);
-        const userCreate = await userModel.create(body);
-        //const code = await smsCode(userCreate.phoneNumber);
-        const code = 1422;
-        const verifyCode = await verifyModel.create({user: userCreate._id, code: code})
-        userCreate.verificationCode = verifyCode._id;
-        await userCreate.save();
-        return successHandler(res, userCreate);
-    } catch (err) {
-        if (req.file) {
-            let dataImages = fs.readdirSync('Media');
-            if (dataImages.includes(req.file.filename)) {
-                let index = dataImages.indexOf(req.file.filename)
-                let remove = await fs.unlinkSync(`Media/${dataImages[index]}`);
-            }
-        }
-        return errorHandler(res, err);
-    }
-}
+// const register = async (req,res) => {
+//     try {
+//         const body = req.body;
+//         if(req.file) {
+//             body.avatar = req.file.filename;
+//         };
+//         if (body.confirmPassword !== body.password) {
+//             let err = {};
+//             err.message = 'Password and Confirm password are different'
+//             return errorHandler(res, err);
+//         }
+//         body.password = await helpFunctions.hashPassword(body.password);
+//         const userCreate = await userModel.create(body);
+//         //const code = await smsCode(userCreate.phoneNumber);
+//         const code = 1422;
+//         const verifyCode = await verifyModel.create({user: userCreate._id, code: code})
+//         userCreate.verificationCode = verifyCode._id;
+//         await userCreate.save();
+//         return successHandler(res, userCreate);
+//     } catch (err) {
+//         if (req.file) {
+//             let dataImages = fs.readdirSync('Media');
+//             if (dataImages.includes(req.file.filename)) {
+//                 let index = dataImages.indexOf(req.file.filename)
+//                 let remove = await fs.unlinkSync(`Media/${dataImages[index]}`);
+//             }
+//         }
+//         return errorHandler(res, err);
+//     }
+// }
 
 const registerPhone = async (req,res) => {
     try {
-        const phoneNumber = req.body.phoneNumber;
+        const phone = req.body.phoneNumber;
+        console.log(phone)
         const userCreate = await userModel.create({
-            phoneNumber: phoneNumber
+            phoneNumber: phone
         });
         return successHandler(res, userCreate);
     } catch (err) {
