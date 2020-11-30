@@ -79,13 +79,9 @@ const registerUserName = async (req,res) => {
     try {
         const userName = req.body.userName;
         const userId = req.query.userId
-        console.log(req.file.filename)
         if(req.file) {
             req.body.avatar = req.file.filename;
-        } else if (!req.body.avatar) {
-            req.body.avatar = 'https://www.searchpng.com/wp-content/uploads/2019/02/Profile-PNG-Icon-715x715.png'
-        }
-        else {
+        } else {
             req.body.avatar = 'https://www.searchpng.com/wp-content/uploads/2019/02/Profile-PNG-Icon-715x715.png'
         }
         const userUpdate = await userModel.updateOne({_id: userId}, {
