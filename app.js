@@ -12,7 +12,7 @@ const socketAuth = require('./jwtValidation').socketAuth;
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(cors());
-app.use(express.static(path.join(__dirname, 'Media')));
+//app.use('/uploads', express.static(path.join(__dirname, 'Media')));
 
 app.use('/api/token', token)
 app.use(bodyParser.urlencoded({extended: true}));

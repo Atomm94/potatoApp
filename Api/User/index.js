@@ -79,6 +79,7 @@ const registerUserName = async (req,res) => {
     try {
         const userName = req.body.userName;
         const userId = req.query.userId
+        console.log(req.file.filename)
         if(req.file) {
             req.body.avatar = req.file.filename;
         } else {
