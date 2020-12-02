@@ -10,7 +10,7 @@ const successHandler = (res,data) => {
 const errorHandler = (res,err) => {
     let resObj = {
         success: false,
-        data: null,
+        data: err.data || null,
         message: err.message || 'Something went wrong!'
     }
     res.status(res.statusCode).json(resObj)
