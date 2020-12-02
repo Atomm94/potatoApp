@@ -185,12 +185,30 @@ const login = async (req,res) => {
         loginObj.password = password;
         if (req.body.phoneNumber) {
             loginObj.phoneNumber = phoneNumber;
-            userFind = await userModel.findOne({phoneNumber: loginObj.phoneNumber, delete: false, block: false})
+            userFind = await userModel.findOne({phoneNumber: loginObj.phoneNumber, delete: false})
             if (!userFind) {
                 let err = {};
                 err.message = "phone number is not correct!"
                 return errorHandler(res, err);
             }
+            userFind = await userModel.findOne({phoneNumber: loginObj.phoneNumber, delete: false, block: true})
+            if (userFind) {
+                let err = {};
+                err.message = "This user is not verified!"
+                err.data = userFind._id
+                const code = await smsCode(userFind.phoneNumber);
+                //const code = 1422;
+                const findVerify = await verifyModel.findOne({_id: userFind.verificationCode});
+                if (findVerify) {
+                    await verifyModel.deleteOne({_id: userFind.verificationCode})
+                }
+                const verifyCode = await verifyModel.create({user: userFind._id, code: code})
+                userFind.verificationCode = verifyCode._id;
+                await userFind.save();
+                return errorHandler(res, err);
+            }
+
+            userFind = await userModel.findOne({phoneNumber: loginObj.phoneNumber, delete: false, block: false})
             tok = {
                 id: userFind._id,
                 phoneNumber: userFind.phoneNumber
@@ -198,12 +216,30 @@ const login = async (req,res) => {
         }
         if (req.body.userName) {
             loginObj.userName = userName;
-            userFind = await userModel.findOne({userName: loginObj.userName, delete: false, block: false})
+            userFind = await userModel.findOne({userName: loginObj.userName, delete: false})
             if (!userFind) {
                 let err = {};
                 err.message = "nick name is not correct!"
                 return errorHandler(res, err);
             }
+            userFind = await userModel.findOne({userName: loginObj.userName, delete: false, block: true})
+            if (userFind) {
+                let err = {};
+                err.message = "This user is not verified!"
+                err.data = userFind._id
+                const code = await smsCode(userFind.phoneNumber);
+                //const code = 1422;
+                const findVerify = await verifyModel.findOne({_id: userFind.verificationCode});
+                if (findVerify) {
+                    await verifyModel.deleteOne({_id: userFind.verificationCode})
+                }
+                const verifyCode = await verifyModel.create({user: userFind._id, code: code})
+                userFind.verificationCode = verifyCode._id;
+                await userFind.save();
+                return errorHandler(res, err);
+            }
+
+            userFind = await userModel.findOne({userName: loginObj.userName, delete: false, block: false})
             tok = {
                 id: userFind._id,
                 userName: userFind.userName
