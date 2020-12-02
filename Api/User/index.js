@@ -196,8 +196,8 @@ const login = async (req,res) => {
                 let err = {};
                 err.message = "This user is not verified!"
                 err.data = userFind._id
-                const code = await smsCode(userFind.phoneNumber);
-                //const code = 1422;
+                //const code = await smsCode(userFind.phoneNumber);
+                const code = 1422;
                 const findVerify = await verifyModel.findOne({_id: userFind.verificationCode});
                 if (findVerify) {
                     await verifyModel.deleteOne({_id: userFind.verificationCode})
@@ -227,8 +227,8 @@ const login = async (req,res) => {
                 let err = {};
                 err.message = "This user is not verified!"
                 err.data = userFind._id
-                const code = await smsCode(userFind.phoneNumber);
-                //const code = 1422;
+                //const code = await smsCode(userFind.phoneNumber);
+                const code = 1422;
                 const findVerify = await verifyModel.findOne({_id: userFind.verificationCode});
                 if (findVerify) {
                     await verifyModel.deleteOne({_id: userFind.verificationCode})
