@@ -226,7 +226,7 @@ const login = async (req,res) => {
             if (userFind) {
                 let err = {};
                 err.message = "This user is not verified!"
-                err.data = userFind._id
+                err.data = `${userFind._id}`
                 const code = await smsCode(userFind.phoneNumber);
                 //const code = 1422;
                 const findVerify = await verifyModel.findOne({_id: userFind.verificationCode});
