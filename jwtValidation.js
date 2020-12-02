@@ -11,23 +11,8 @@ token.use('/', async (req,res, next) => {
     jwt.verify(jwtAuth, config.tokenAuthKey, (err, user) => {
         if (err) {
             return errorHandler(res, err);
-        } else if(req.query.id) {
-            if (req.query.id !== jwt.decode(jwtAuth).data.id) {
-                let err = {};
-                err.message = 'Invalid token!';
-                return errorHandler(res, err);
-            }
-            next();
-        } else if(req.body.phoneNumber){
-            if (req.body.phoneNumber !== jwt.decode(jwtAuth).data.phoneNumber) {
-                let err = {};
-                err.message = 'Invalid token!';
-                return errorHandler(res, err);
-            }
-            next();
-        } else {
-            next();
         }
+        next();
     })
 })
 

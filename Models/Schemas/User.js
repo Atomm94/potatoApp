@@ -27,12 +27,10 @@ const userSchema = new Schema({
     },
     userName: {
         type: String,
-        unique: true,
         default: null
     },
     phoneNumber: {
         type: String,
-        unique: true,
         default: null
     },
     birthDay: {
@@ -46,10 +44,6 @@ const userSchema = new Schema({
     delete: {
         type: Boolean,
         default: false
-    },
-    token: {
-        type: String,
-        default: null
     },
     verificationCode: {
         type: Schema.Types.ObjectId,
@@ -86,7 +80,15 @@ const userSchema = new Schema({
     notifications: [{
         userName: String,
         id: String
-    }]
+    }],
+    createdAt: {
+        type: Date,
+        default: Date.now()
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now()
+    }
 })
 
 const verifySchema = new Schema ({

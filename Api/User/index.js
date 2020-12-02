@@ -1,5 +1,6 @@
 const express = require('express');
 const userModel = require('../../Models/models').user;
+const eventModel = require('../../Models/models').event;
 const verifyModel = require('../../Models/models').verifyCode;
 const successHandler = require('../responseFunctions').successHandler;
 const errorHandler = require('../responseFunctions').errorHandler;
@@ -9,42 +10,21 @@ const smsCode = require('../../sendSMS').sendSmsCode;
 const smsLink = require('../../sendSMS').sendLink;
 const fs = require('fs');
 const uuid = require('uuid-random');
-
-// const register = async (req,res) => {
-//     try {
-//         const body = req.body;
-//         if(req.file) {
-//             body.avatar = req.file.filename;
-//         };
-//         if (body.confirmPassword !== body.password) {
-//             let err = {};
-//             err.message = 'Password and Confirm password are different'
-//             return errorHandler(res, err);
-//         }
-//         body.password = await helpFunctions.hashPassword(body.password);
-//         const userCreate = await userModel.create(body);
-//         //const code = await smsCode(userCreate.phoneNumber);
-//         const code = 1422;
-//         const verifyCode = await verifyModel.create({user: userCreate._id, code: code})
-//         userCreate.verificationCode = verifyCode._id;
-//         await userCreate.save();
-//         return successHandler(res, userCreate);
-//     } catch (err) {
-//         if (req.file) {
-//             let dataImages = fs.readdirSync('Media');
-//             if (dataImages.includes(req.file.filename)) {
-//                 let index = dataImages.indexOf(req.file.filename)
-//                 let remove = await fs.unlinkSync(`Media/${dataImages[index]}`);
-//             }
-//         }
-//         return errorHandler(res, err);
-//     }
-// }
+const jwt = require('jsonwebtoken')
 
 const registerPhone = async (req,res) => {
     try {
         const phone = req.body.phoneNumber;
-        console.log(phone)
+        const deletedUserFind = await userModel.findOne({phoneNumber: phone, delete: true});
+        if (deletedUserFind) {
+            const userDelete = await userModel.deleteOne({phoneNumber: phone, delete: true});
+        }
+        const userFind = await userModel.findOne({phoneNumber: phone, delete: false});
+        if (userFind) {
+            let err = {};
+            err.message = "phoneNumber is duplicated!"
+            return errorHandler(res, err);
+        }
         const userCreate = await userModel.create({
             phoneNumber: phone,
             userName: uuid()
@@ -79,8 +59,19 @@ const registerUserName = async (req,res) => {
     try {
         const userName = req.body.userName;
         const userId = req.query.userId
+        const deletedUserFind = await userModel.findOne({userName: userName, delete: true});
+        if (deletedUserFind) {
+            const userDelete = await userModel.deleteOne({userName: userName, delete: true});
+        }
+        const userFind = await userModel.findOne({userName: userName, delete: false});
+        if (userFind) {
+            let err = {};
+            err.message = "userName is duplicated!"
+            return errorHandler(res, err);
+        }
+        let fullUrl = req.protocol + '://' + req.get('host');
         if(req.file) {
-            req.body.avatar = req.file.filename;
+            req.body.avatar =  fullUrl + '/' + req.file.filename;
         } else {
             req.body.avatar = 'https://www.searchpng.com/wp-content/uploads/2019/02/Profile-PNG-Icon-715x715.png'
         }
@@ -195,6 +186,11 @@ const login = async (req,res) => {
         if (req.body.phoneNumber) {
             loginObj.phoneNumber = phoneNumber;
             userFind = await userModel.findOne({phoneNumber: loginObj.phoneNumber, delete: false, block: false})
+            if (!userFind) {
+                let err = {};
+                err.message = "phone number is not correct!"
+                return errorHandler(res, err);
+            }
             tok = {
                 id: userFind._id,
                 phoneNumber: userFind.phoneNumber
@@ -203,6 +199,11 @@ const login = async (req,res) => {
         if (req.body.userName) {
             loginObj.userName = userName;
             userFind = await userModel.findOne({userName: loginObj.userName, delete: false, block: false})
+            if (!userFind) {
+                let err = {};
+                err.message = "nick name is not correct!"
+                return errorHandler(res, err);
+            }
             tok = {
                 id: userFind._id,
                 userName: userFind.userName
@@ -230,8 +231,9 @@ const login = async (req,res) => {
 
 const userGet = async (req,res) => {
     try {
-        const id = req.query.id;
-        const userFind = await userModel.findOne({_id: id, delete: false, block: false}, {token: 0, password: 0});
+        const token = req.authorization || req.headers['authorization'];
+        const decodeToken = await jwt.decode(token);
+        const userFind = await userModel.findOne({_id: decodeToken.data.id, delete: false, block: false}, {password: 0});
         if (!userFind) {
             let err = {};
             err.message = "Don't find this user!";
@@ -273,82 +275,6 @@ const remove = async (req,res) => {
     }
 }
 
-const accept = async (req,res) => {
-    try {
-       const {id, friendId} = req.query;
-       const userUpdate = await userModel.updateOne({_id: id, acceptFriend: friendId, delete: false, block: false}, {
-           $push: {friends: friendId},
-           $pull: {acceptFriend: friendId}
-       });
-        if (userUpdate.nModified === 0) {
-            let err = {};
-            err.message = "Don't find this user!";
-            return errorHandler(res, err)
-        }
-       const acceptUpdate = await userModel.updateOne({_id: friendId, addFriend: id, delete: false, block: false}, {
-           $push: {friends: id},
-           $pull: {addFriend: id}
-       })
-        if (acceptUpdate.nModified === 0) {
-            let err = {};
-            err.message = "Don't find this user!";
-            return errorHandler(res, err)
-        }
-       res.message = 'are friends!!'
-        return successHandler(res, null)
-    } catch (err) {
-        return errorHandler(res, err);
-    }
-}
-
-const ignore = async (req,res) => {
-    try {
-        const {id, friendId} = req.query;
-        const userUpdate = await userModel.updateOne({_id: id, acceptFriend: friendId, delete: false, block: false}, {
-            $pull: {acceptFriend: friendId}
-        });
-        if (userUpdate.nModified === 0) {
-            let err = {};
-            err.message = "Don't find this user!";
-            return errorHandler(res, err)
-        }
-        const acceptUpdate = await userModel.updateOne({_id: friendId, addFriend: id, delete: false, block: false}, {
-            $pull: {addFriend: id}
-        })
-        if (acceptUpdate.nModified === 0) {
-            let err = {};
-            err.message = "Don't find this user!";
-            return errorHandler(res, err)
-        }
-        res.message = 'are ignored!'
-        return successHandler(res, null)
-    } catch (err) {
-        return errorHandler(res, err);
-    }
-}
-
-const addFriend = async (req,res) => {
-    try {
-        const {id, friendId} = req.query;
-        const userFind = await userModel.updateOne({_id: id, delete: false, block: false}, {$push: {addFriend: friendId}});
-        if (userFind.nModified === 0) {
-            let err = {};
-            err.message = "Don't find this user!";
-            return errorHandler(res, err)
-        }
-        const friendFind = await userModel.updateOne({_id: friendId, delete: false, block: false}, {$push: {acceptFriend: id}});
-        if (friendFind.nModified === 0) {
-            let err = {};
-            err.message = "Don't find this friend!";
-            return errorHandler(res, err)
-        }
-        res.message = "You are request to add a new friend!"
-        return successHandler(res, userFind);
-    } catch (err) {
-        return errorHandler(res, err);
-    }
-}
-
 const invite = async (req,res) => {
     try {
         const id = req.query.id;
@@ -363,7 +289,6 @@ const invite = async (req,res) => {
 
         res.message = "This user was invited!";
         return successHandler(res, null)
-        res.message = "This user ";
     } catch (err) {
         return errorHandler(res, err);
     }
@@ -470,8 +395,25 @@ const getNotifications = async (req,res) => {
     }
 }
 
+const leaveFromChat = async (req,res) => {
+    try {
+        const {id, eventId} = req.query;
+        const updateEvent = await eventModel.updateOne({_id: eventId}, {
+            $pull: {users: id}
+        });
+        if(updateEvent.nModified === 0) {
+            let err = {};
+            err.message = "User or Event is not find!";
+            return errorHandler(res, err);
+        }
+        res.message = "Event updated successfully!"
+        return successHandler(res, updateEvent);
+    } catch (err) {
+        return errorHandler(res, err);
+    }
+}
+
 module.exports = {
-   // register,
     registerPhone,
     registerName,
     registerUserName,
@@ -482,13 +424,11 @@ module.exports = {
     userGet,
     update,
     remove,
-    accept,
-    ignore,
-    addFriend,
     invite,
     sendResetPasswordCode,
     resetPassword,
     accessContacts,
     accessLocation,
-    getNotifications
+    getNotifications,
+    leaveFromChat
 }
