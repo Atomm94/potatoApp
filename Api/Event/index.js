@@ -42,7 +42,7 @@ const getUserEvents = async (req,res) => {
         }
         if (!userFind.events) {
             let err = {};
-            err.message = "Don't find events whit this user!";
+            err.message = "Don't find events with this user!";
             return errorHandler(res, err);
         }
         const events = await userModel.findOne({_id: id}).select('events').populate('events');
