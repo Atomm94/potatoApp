@@ -283,8 +283,10 @@ const userGet = async (req,res) => {
 
 const update = async (req,res) => {
     try {
-        const id = req.query.id;
-        const userUpdate = await userModel.updateOne({_id: id, delete: false, block: false}, req.body);
+        const token = req.authorization || req.headers['authorization'];
+        const decodeToken = await jwt.decode(token);
+        req.body.updatedAt = Date.now();
+        const userUpdate = await userModel.updateOne({_id: decodeToken.data.id, delete: false, block: false}, req.body);
         if (userUpdate.nModified === 0) {
             let err = {};
             err.message = "Don't find this user!";
@@ -293,6 +295,25 @@ const update = async (req,res) => {
         return successHandler(res, userUpdate);
     } catch (err) {
         return successHandler(res, err);
+    }
+}
+
+const changePhoneNumber = async (req,res) => {
+    try {
+        const id = req.query.id;
+        const phoneNumber = req.body.phoneNumber;
+        const userUpdate = await userModel.updateOne({_id: decodeToken.data.id, delete: false}, {
+            $set: {phoneNumber: phoneNumber, updatedAt: Date.now()}
+        });
+        if (userUpdate.nModified === 0) {
+            let err = {};
+            err.message = "Don't find this user!";
+            return errorHandler(res, err)
+        }
+        res.message = "the phone number is changed!"
+        return successHandler(res, userUpdate);
+    } catch (err) {
+        return errorHandler(res, err);
     }
 }
 
@@ -466,5 +487,6 @@ module.exports = {
     accessContacts,
     accessLocation,
     getNotifications,
-    leaveFromChat
+    leaveFromChat,
+    changePhoneNumber
 }

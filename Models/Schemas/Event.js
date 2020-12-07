@@ -20,10 +20,7 @@ const eventSchema = new Schema({
         type: Date,
         default: Date.now()
     },
-    updatedAt: {
-        type: Date,
-        default: Date.now()
-    },
+    updatedAt: Date,
     delete: {
         type: Boolean,
         default: false

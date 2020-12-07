@@ -85,10 +85,7 @@ const userSchema = new Schema({
         type: Date,
         default: Date.now()
     },
-    updatedAt: {
-        type: Date,
-        default: Date.now()
-    }
+    updatedAt: Date
 })
 
 const verifySchema = new Schema ({

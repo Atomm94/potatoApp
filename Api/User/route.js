@@ -18,8 +18,9 @@ user.post('/registerPassword', validation.passwordValidation, controllers.regist
 user.post('/login', validation.loginValidation, controllers.login)
 user.post('/accessContacts', controllers.accessContacts)
 user.post('/accessLocation', controllers.accessLocation)
+user.put('/changeNumber', controllers.changePhoneNumber);
 user.put('/verifyCode', controllers.verifyCode)
-user.put('/update',upload, controllers.update)
+user.put('/log/update',upload, controllers.update)
 user.put('/leaveFromChat', controllers.leaveFromChat)
 user.put('/sendResCode', controllers.sendResetPasswordCode)
 user.put('/log/resetPassword', controllers.resetPassword)
