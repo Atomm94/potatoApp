@@ -283,9 +283,8 @@ const userGet = async (req,res) => {
 
 const update = async (req,res) => {
     try {
-        const token = req.authorization || req.headers['authorization'];
-        const decodeToken = await jwt.decode(token);
-        const userUpdate = await userModel.updateOne({_id: decodeToken.data.id, delete: false, block: false}, req.body);
+        const id = req.query.id;
+        const userUpdate = await userModel.updateOne({_id: id, delete: false, block: false}, req.body);
         if (userUpdate.nModified === 0) {
             let err = {};
             err.message = "Don't find this user!";
