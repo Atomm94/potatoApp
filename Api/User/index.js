@@ -353,9 +353,14 @@ const invite = async (req,res) => {
 
 const sendResetPasswordCode = async (req, res) => {
     try {
-        const phoneNumber = req.query.phoneNumber;
-        //const code = await smsCode(phoneNumber);
-        const code = 1422;
+        const phoneNumber = req.body.phoneNumber;
+        const code = await smsCode(phoneNumber);
+        //const code = 1422;
+        const userFind = await userModel.findOne({phoneNumber: phoneNumber, delete: false});
+        const verifyCode = await verifyModel.create({user: userFind._id, code: code})
+        userFind.verificationCode = verifyCode._id;
+        await userFind.save();
+        res.message = "The code was sent on this phone number!"
         return successHandler(res, code);
     } catch (err) {
         return errorHandler(res, err);
