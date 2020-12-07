@@ -302,7 +302,7 @@ const changePhoneNumber = async (req,res) => {
     try {
         const id = req.query.id;
         const phoneNumber = req.body.phoneNumber;
-        const userUpdate = await userModel.updateOne({_id: decodeToken.data.id, delete: false}, {
+        const userUpdate = await userModel.updateOne({_id: id, delete: false}, {
             $set: {phoneNumber: phoneNumber, updatedAt: Date.now()}
         });
         if (userUpdate.nModified === 0) {
