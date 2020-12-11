@@ -1,7 +1,4 @@
-const express = require('express');
-const userModel = require('../../Models/models').user;
-const eventModel = require('../../Models/models').event;
-const verifyModel = require('../../Models/models').verifyCode;
+const Models = require('../../Models/models');
 const successHandler = require('../responseFunctions').successHandler;
 const errorHandler = require('../responseFunctions').errorHandler;
 const helpFunctions = require('../../helpFunctions');
@@ -15,17 +12,17 @@ const jwt = require('jsonwebtoken')
 const registerPhone = async (req,res) => {
     try {
         const phone = req.body.phoneNumber;
-        const deletedUserFind = await userModel.findOne({phoneNumber: phone, delete: true});
+        const deletedUserFind = await Models.user.findOne({phoneNumber: phone, delete: true});
         if (deletedUserFind) {
-            const userDelete = await userModel.deleteOne({phoneNumber: phone, delete: true});
+            const userDelete = await Models.user.deleteOne({phoneNumber: phone, delete: true});
         }
-        const userFind = await userModel.findOne({phoneNumber: phone, delete: false});
+        const userFind = await Models.user.findOne({phoneNumber: phone, delete: false});
         if (userFind) {
             let err = {};
             err.message = "phoneNumber is duplicated!"
             return errorHandler(res, err);
         }
-        const userCreate = await userModel.create({
+        const userCreate = await Models.user.create({
             phoneNumber: phone,
             userName: uuid()
         });
@@ -40,7 +37,7 @@ const registerName = async (req,res) => {
     try {
         const name = req.body.name;
         const userId = req.query.userId
-        const userUpdate = await userModel.updateOne({_id: userId}, {
+        const userUpdate = await Models.user.updateOne({_id: userId}, {
             $set: {name: name}
         })
         if (userUpdate.nModified === 0) {
@@ -59,11 +56,11 @@ const registerUserName = async (req,res) => {
     try {
         const userName = req.body.userName;
         const userId = req.query.userId
-        const deletedUserFind = await userModel.findOne({userName: userName, delete: true});
+        const deletedUserFind = await Models.user.findOne({userName: userName, delete: true});
         if (deletedUserFind) {
-            const userDelete = await userModel.deleteOne({userName: userName, delete: true});
+            const userDelete = await Models.user.deleteOne({userName: userName, delete: true});
         }
-        const userFind = await userModel.findOne({userName: userName, delete: false});
+        const userFind = await Models.user.findOne({userName: userName, delete: false});
         if (userFind) {
             let err = {};
             err.message = "userName is duplicated!"
@@ -75,7 +72,7 @@ const registerUserName = async (req,res) => {
         } else {
             req.body.avatar = 'https://www.searchpng.com/wp-content/uploads/2019/02/Profile-PNG-Icon-715x715.png'
         }
-        const userUpdate = await userModel.updateOne({_id: userId}, {
+        const userUpdate = await Models.user.updateOne({_id: userId}, {
             $set: {userName: userName, avatar: req.body.avatar}
         })
         if (userUpdate.nModified === 0) {
@@ -101,7 +98,7 @@ const registerBirthDay = async (req,res) => {
     try {
         const birthDay = req.body.birthDay;
         const userId = req.query.userId;
-        const userUpdate = await userModel.updateOne({_id: userId}, {
+        const userUpdate = await Models.user.updateOne({_id: userId}, {
             $set: {birthDay: birthDay}
         })
         if (userUpdate.nModified === 0) {
@@ -126,7 +123,7 @@ const registerPassword = async (req,res) => {
             return errorHandler(res, err);
         }
         password = await helpFunctions.hashPassword(password);
-        const userUpdate = await userModel.updateOne({_id: userId}, {
+        const userUpdate = await Models.user.updateOne({_id: userId}, {
             $set: {password: password}
         })
         if (userUpdate.nModified === 0) {
@@ -134,10 +131,10 @@ const registerPassword = async (req,res) => {
             err.message = "User is not find!"
             return errorHandler(res, err);
         }
-        const findUser = await userModel.findOne({_id: userId});
+        const findUser = await Models.user.findOne({_id: userId});
         //const code = await smsCode(findUser.phoneNumber);
         const code = 1422;
-        const verifyCode = await verifyModel.create({user: findUser._id, code: code})
+        const verifyCode = await Models.verifyCode.create({user: findUser._id, code: code})
         findUser.verificationCode = verifyCode._id;
         await findUser.save();
         res.message = `You are registered your password: ${password}, verify your sms code`
@@ -150,7 +147,7 @@ const registerPassword = async (req,res) => {
 const verifyCode = async (req,res) => {
     try {
         const {id, code} = req.query;
-        const findUser = await userModel.findOne({_id: id}).populate('verificationCode');
+        const findUser = await Models.user.findOne({_id: id}).populate('verificationCode');
         if (!findUser) {
             let err = {};
             err.message = "Don't find this user!";
@@ -158,7 +155,7 @@ const verifyCode = async (req,res) => {
         }
         if (findUser.verificationCode === null) {
             let err = {};
-            await userModel.updateOne({_id: id}, {$set: {verificationCode: null}});
+            await Models.user.updateOne({_id: id}, {$set: {verificationCode: null}});
             err.message = 'The verification code was expired!'
             return errorHandler(res, err);
         }
@@ -185,30 +182,30 @@ const login = async (req,res) => {
         loginObj.password = password;
         if (req.body.phoneNumber) {
             loginObj.phoneNumber = phoneNumber;
-            userFind = await userModel.findOne({phoneNumber: loginObj.phoneNumber, delete: false})
+            userFind = await Models.user.findOne({phoneNumber: loginObj.phoneNumber, delete: false})
             if (!userFind) {
                 let err = {};
                 err.message = "phone number is not correct!"
                 return errorHandler(res, err);
             }
-            userFind = await userModel.findOne({phoneNumber: loginObj.phoneNumber, delete: false, block: true})
+            userFind = await Models.user.findOne({phoneNumber: loginObj.phoneNumber, delete: false, block: true})
             if (userFind) {
                 let err = {};
                 err.message = "This user is not verified!"
                 err.data = userFind._id
                 const code = await smsCode(userFind.phoneNumber);
                 //const code = 1422;
-                const findVerify = await verifyModel.findOne({_id: userFind.verificationCode});
+                const findVerify = await Models.verifyCode.findOne({_id: userFind.verificationCode});
                 if (findVerify) {
-                    await verifyModel.deleteOne({_id: userFind.verificationCode})
+                    await Models.verifyCode.deleteOne({_id: userFind.verificationCode})
                 }
-                const verifyCode = await verifyModel.create({user: userFind._id, code: code})
+                const verifyCode = await Models.verifyCode.create({user: userFind._id, code: code})
                 userFind.verificationCode = verifyCode._id;
                 await userFind.save();
                 return errorHandler(res, err);
             }
 
-            userFind = await userModel.findOne({phoneNumber: loginObj.phoneNumber, delete: false, block: false})
+            userFind = await Models.user.findOne({phoneNumber: loginObj.phoneNumber, delete: false, block: false})
             tok = {
                 id: userFind._id,
                 phoneNumber: userFind.phoneNumber
@@ -216,30 +213,30 @@ const login = async (req,res) => {
         }
         if (req.body.userName) {
             loginObj.userName = userName;
-            userFind = await userModel.findOne({userName: loginObj.userName, delete: false})
+            userFind = await Models.user.findOne({userName: loginObj.userName, delete: false})
             if (!userFind) {
                 let err = {};
                 err.message = "nick name is not correct!"
                 return errorHandler(res, err);
             }
-            userFind = await userModel.findOne({userName: loginObj.userName, delete: false, block: true})
+            userFind = await Models.user.findOne({userName: loginObj.userName, delete: false, block: true})
             if (userFind) {
                 let err = {};
                 err.message = "This user is not verified!"
                 err.data = userFind._id
                 const code = await smsCode(userFind.phoneNumber);
                 //const code = 1422;
-                const findVerify = await verifyModel.findOne({_id: userFind.verificationCode});
+                const findVerify = await Models.verifyCode.findOne({_id: userFind.verificationCode});
                 if (findVerify) {
-                    await verifyModel.deleteOne({_id: userFind.verificationCode})
+                    await Models.verifyCode.deleteOne({_id: userFind.verificationCode})
                 }
-                const verifyCode = await verifyModel.create({user: userFind._id, code: code})
+                const verifyCode = await Models.verifyCode.create({user: userFind._id, code: code})
                 userFind.verificationCode = verifyCode._id;
                 await userFind.save();
                 return errorHandler(res, err);
             }
 
-            userFind = await userModel.findOne({userName: loginObj.userName, delete: false, block: false})
+            userFind = await Models.user.findOne({userName: loginObj.userName, delete: false, block: false})
             tok = {
                 id: userFind._id,
                 userName: userFind.userName
@@ -257,9 +254,12 @@ const login = async (req,res) => {
             return errorHandler(res, err);
         }
         const signToken = await jwtAuth(tok);
-        userFind.token = signToken;
+        let respObj = {
+            user: userFind,
+            token: signToken
+        }
         await userFind.save();
-        return successHandler(res, userFind)
+        return successHandler(res, respObj)
     } catch (err) {
         return errorHandler(res, err);
     }
@@ -269,7 +269,7 @@ const userGet = async (req,res) => {
     try {
         const token = req.authorization || req.headers['authorization'];
         const decodeToken = await jwt.decode(token);
-        const userFind = await userModel.findOne({_id: decodeToken.data.id, delete: false, block: false}, {password: 0});
+        const userFind = await Models.user.findOne({_id: decodeToken.data.id, delete: false, block: false}, {password: 0});
         if (!userFind) {
             let err = {};
             err.message = "Don't find this user!";
@@ -286,7 +286,7 @@ const update = async (req,res) => {
         const token = req.authorization || req.headers['authorization'];
         const decodeToken = await jwt.decode(token);
         req.body.updatedAt = Date.now();
-        const userUpdate = await userModel.updateOne({_id: decodeToken.data.id, delete: false, block: false}, req.body);
+        const userUpdate = await Models.user.updateOne({_id: decodeToken.data.id, delete: false, block: false}, req.body);
         if (userUpdate.nModified === 0) {
             let err = {};
             err.message = "Don't find this user!";
@@ -302,7 +302,7 @@ const changePhoneNumber = async (req,res) => {
     try {
         const id = req.query.id;
         const phoneNumber = req.body.phoneNumber;
-        const userUpdate = await userModel.updateOne({_id: id, delete: false}, {
+        const userUpdate = await Models.user.updateOne({_id: id, delete: false}, {
             $set: {phoneNumber: phoneNumber, updatedAt: Date.now()}
         });
         if (userUpdate.nModified === 0) {
@@ -320,7 +320,7 @@ const changePhoneNumber = async (req,res) => {
 const remove = async (req,res) => {
     try {
         const id = req.query.id;
-        const userDelete = await userModel.updateOne({_id: id, delete: false, block: false}, {$set: {delete: true}});
+        const userDelete = await Models.user.updateOne({_id: id, delete: false, block: false}, {$set: {delete: true}});
         if (userDelete.nModified === 0) {
             let err = {};
             err.message = "Don't find this user!";
@@ -336,7 +336,7 @@ const invite = async (req,res) => {
     try {
         const id = req.query.id;
         const phoneNumber = req.body.phoneNumber;
-        const userFind = await userModel.findOne({_id: id, delete: false, block: false});
+        const userFind = await Models.user.findOne({_id: id, delete: false, block: false});
         if (!userFind) {
             let err = {};
             err.message = "Don't find this user!";
@@ -356,8 +356,8 @@ const sendResetPasswordCode = async (req, res) => {
         const phoneNumber = req.body.phoneNumber;
         const code = await smsCode(phoneNumber);
         //const code = 1422;
-        const userFind = await userModel.findOne({phoneNumber: phoneNumber, delete: false});
-        const verifyCode = await verifyModel.create({user: userFind._id, code: code})
+        const userFind = await Models.user.findOne({phoneNumber: phoneNumber, delete: false});
+        const verifyCode = await Models.verifyCode.create({user: userFind._id, code: code})
         userFind.verificationCode = verifyCode._id;
         await userFind.save();
         res.message = "The code was sent on this phone number!"
@@ -371,14 +371,16 @@ const sendResetPasswordCode = async (req, res) => {
 
 const resetPassword = async (req,res) => {
     try {
-        const {id, password, confirmPassword} = req.body;
+        const token = req.authorization || req.headers['authorization'];
+        const decodeToken = await jwt.decode(token);
+        const {password, confirmPassword} = req.body;
         if (password !== confirmPassword) {
             let err = {};
             err.message = 'confirm password is incorrect!';
             return errorHandler(res, err);
         }
         let newPassword = await helpFunctions.hashPassword(password);
-        let updatePassword = await userModel.updateOne({_id: id, delete: false, block: false}, {
+        let updatePassword = await Models.user.updateOne({_id: decodeToken.data.id, delete: false, block: false}, {
             $set: {password: newPassword}
         })
         if (updatePassword.nModified === 0) {
@@ -402,17 +404,17 @@ const accessContacts = async (req,res) => {
         for (let i=0; i < contacts.length; i++) {
             let parseItem = JSON.parse(contacts[i])
             let phone = parseItem.phoneNumber;
-            const findUser = await userModel.findOne({phoneNumber: phone, delete: false, block: false});
+            const findUser = await Models.user.findOne({phoneNumber: phone, delete: false, block: false});
             if(!findUser) {
                 inviteUsers.push(parseItem)
             } else {
                 quickAddUsers.push(findUser._id)
             }
         }
-        await userModel.updateOne({_id: id, delete: false, block: false}, {
+        await Models.user.updateOne({_id: id, delete: false, block: false}, {
             $set: {invite: inviteUsers, quickAdd: quickAddUsers}
         })
-        const returnUsers = await userModel.findOne({_id: id}).select('invite').select('quickAdd');
+        const returnUsers = await Models.user.findOne({_id: id}).select('invite').select('quickAdd');
         return successHandler(res, returnUsers)
     } catch (err) {
         errorHandler(res, err)
@@ -427,7 +429,7 @@ const accessLocation = async (req,res) => {
         };
         const id = req.query.id;
         const locateUser = { type: 'Point', coordinates: coordinate };
-        const updateUser = await userModel.updateOne({_id: id, delete: false, block: false}, {
+        const updateUser = await Models.user.updateOne({_id: id, delete: false, block: false}, {
             $set: {location: locateUser}
         })
         if (updateUser.nModified === 0) {
@@ -444,7 +446,7 @@ const accessLocation = async (req,res) => {
 const getNotifications = async (req,res) => {
     try {
         const id = req.query.id;
-        const findNotifications = await userModel.findOne({_id: id, delete: false, block: false})
+        const findNotifications = await Models.user.findOne({_id: id, delete: false, block: false})
             .select('notifications');
         if(!findNotifications) {
             let err = {};
@@ -460,7 +462,7 @@ const getNotifications = async (req,res) => {
 const leaveFromChat = async (req,res) => {
     try {
         const {id, eventId} = req.query;
-        const updateEvent = await eventModel.updateOne({_id: eventId}, {
+        const updateEvent = await Models.event.updateOne({_id: eventId}, {
             $pull: {users: id}
         });
         if(updateEvent.nModified === 0) {

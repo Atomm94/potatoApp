@@ -2,35 +2,32 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Uxarkox4</title>
+    <title>user4</title>
     <!--    <link href="style.css" rel="stylesheet">-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
     <script>
         const socket = io.connect(
-            `http://localhost:5000/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjoiNWY4ZDc2ZDRjODc4NjgwYjQwODNjMDQ3IiwidXNlck5hbWUiOiJqaW1teTExIn0sImlhdCI6MTYwMzEwNjYyMn0.P_LYuFMKbGSUe4qyRPs5SxfzNEKGTrpiHS87i5N6Bhg`
+            `http://localhost:5000/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7ImlkIjoiNWZjZjI3MDE2MjA0NjkwMDI0OTE2ZTI3IiwidXNlck5hbWUiOiJlbGxhNzcifSwiaWF0IjoxNjA3NDEyMjIwfQ.xvDXI_7b44ugbCOfGdMHWmQtBiIh5lwEn0ujJWIDX8U`
         );
         socket.on("connect", () => {
             console.log("connected to the server");
-            socket.on("eee",(msg)=>{
-                console.log(msg)
-            })
+            const inp = document.getElementById('inp');
+            const send = document.getElementById('send');
+
             socket.on("newMessage", (message) => {
                 const m = document.createElement("p");
-                m.style = "color: blue";
+                m.style = "color: grey";
                 m.innerHTML += message;
                 document.body.append(m);
-                console.log(message);
             });
 
             send.onclick = function () {
                 socket.emit("message", "5fb4cf89a406a300748a7d51", inp.value);
-
                 const m = document.createElement("p");
-                m.style = "color: grey";
+                m.style = "color: black";
                 m.innerHTML += inp.value;
                 document.body.append(m);
                 inp.value = ''
-                console.log(inp.value);
             };
         });
     </script>

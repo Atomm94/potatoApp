@@ -1,12 +1,7 @@
-const express = require('express');
-const eventModel = require('../../Models/models').event;
-const userModel = require('../../Models/models').user;
-const chatModel = require('../../Models/models').chat;
+const Models = require('../../Models/models');
 const successHandler = require('../responseFunctions').successHandler;
 const errorHandler = require('../responseFunctions').errorHandler;
 const helpFunctions = require('../../helpFunctions');
-const multer = require('multer');
-const uploadImage = require('../../uploadFile');
 const jwtAuth = require('../../jwtValidation').jwtToken;
 const smsCode = require('../../sendSMS').sendSmsCode;
 const fs = require('fs');
@@ -19,9 +14,9 @@ const newEvent = async (req,res) => {
             when: req.body.when,
             users: req.query.users
         }
-        const createEvent = await eventModel.create(evObj);
+        const createEvent = await Models.event.create(evObj);
         evObj.users.map(async item => {
-            await userModel.updateOne({_id: item, delete: false, block: false}, {
+            await Models.user.updateOne({_id: item, delete: false, block: false}, {
                 $push: {events: createEvent._id}
             })
         })
@@ -34,7 +29,7 @@ const newEvent = async (req,res) => {
 const getUserEvents = async (req,res) => {
     try {
         const id = req.query.id;
-        const userFind = await userModel.findOne({_id: id, delete: false, block: false})
+        const userFind = await Models.user.findOne({_id: id, delete: false, block: false})
         if (!userFind) {
             let err = {};
             err.message = "Don't find this user!";
@@ -45,7 +40,7 @@ const getUserEvents = async (req,res) => {
             err.message = "Don't find events with this user!";
             return errorHandler(res, err);
         }
-        const events = await userModel.findOne({_id: id}).select('events').populate('events');
+        const events = await Models.user.findOne({_id: id}).select('events').populate('events');
         return successHandler(res, events)
     } catch (err) {
         return errorHandler(res, err)
@@ -55,7 +50,7 @@ const getUserEvents = async (req,res) => {
 const getEvent = async (req,res) => {
     try {
         const id = req.query.id;
-        const eventFind = await eventModel.findOne({_id: id, delete: false});
+        const eventFind = await Models.event.findOne({_id: id, delete: false});
         if (!eventFind) {
             let err = {};
             err.message = "Don't find this event!";
@@ -67,10 +62,26 @@ const getEvent = async (req,res) => {
     }
 }
 
+const getMessages = async (req,res) => {
+    try {
+        const chatId = req.query.chatId;
+        const findChat = await Models.chat.findOne({_id: chatId}, {_id: 0, event: 0}).populate('messages.senderId', {avatar: 1, name: 1});
+        if (!chatId) {
+            let err = {};
+            err.message = "Chat is not find!";
+            return errorHandler(res, err);
+        }
+        res.message = "All messages!";
+        return successHandler(res, findChat)
+    } catch (err) {
+        return errorHandler(res, err);
+    }
+}
+
 const deleteEvent = async (req,res) => {
     try {
         const id = req.query.id;
-        const removeEvent = await eventModel.updateOne({_id: id, delete: false}, {
+        const removeEvent = await Models.event.updateOne({_id: id, delete: false}, {
             $set: {delete: true}
         })
         if (removeEvent.nModified === 0) {
@@ -88,6 +99,7 @@ const deleteEvent = async (req,res) => {
 module.exports = {
     newEvent,
     getUserEvents,
+    getMessages,
     getEvent,
     deleteEvent
 }

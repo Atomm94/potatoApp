@@ -16,6 +16,7 @@ const pointSchema = new Schema({
     }
 });
 
+
 const userSchema = new Schema({
     avatar: {
         type: String,

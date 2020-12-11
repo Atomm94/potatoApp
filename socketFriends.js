@@ -172,7 +172,7 @@ exports.listen = function (app) {
                         event: eventID,
                         messages: [{
                             message: message,
-                            userId: userID,
+                            senderId: userID,
                             data: new Date().toLocaleString()
                         }]
                     });
@@ -185,7 +185,7 @@ exports.listen = function (app) {
                             $push: {
                                 messages: {
                                     message: message,
-                                    userId: userID,
+                                    senderId: userID,
                                     data: new Date().toLocaleString()
                                 }
                             }

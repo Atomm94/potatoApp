@@ -8,7 +8,10 @@ const chatSchema = new Schema({
     },
     messages: [{
         message: String,
-        senderId: Schema.Types.ObjectId,
+        senderId: {
+            type: Schema.Types.ObjectId,
+            ref: 'user'
+        },
         data: Date
     }]
 });
